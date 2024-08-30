@@ -35,4 +35,4 @@ live_view_studio-*.tar
 npm-debug.log
 /assets/node_modules/
 
-../.DS_Store
+.DS_Store
