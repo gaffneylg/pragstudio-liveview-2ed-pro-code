@@ -1,6 +1,7 @@
 defmodule LiveViewStudioWeb.VehiclesLive do
   use LiveViewStudioWeb, :live_view
   alias LiveViewStudio.Vehicles, as: Vehicles
+  import LiveViewStudioWeb.CustomComponents
 
   def mount(_params, _session, socket) do
     socket =
@@ -41,7 +42,7 @@ defmodule LiveViewStudioWeb.VehiclesLive do
         </option>
       </datalist>
 
-      <div :if={@loading} class="loader">Loading...</div>
+      <.loading_dots loading={@loading} />
 
       <div class="vehicles">
         <ul>
