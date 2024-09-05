@@ -13,61 +13,6 @@ defmodule LiveViewStudioWeb.AthletesLive do
     {:ok, socket, temporary_assigns: [athletes: []]}
   end
 
-  def render(assigns) do
-    ~H"""
-    <h1>Athletes</h1>
-    <div id="athletes">
-      <.filter_form filter={@filter} />
-
-      <div class="athletes">
-        <.athlete :for={athlete <- @athletes} athlete={athlete} />
-      </div>
-    </div>
-    """
-  end
-
-  def filter_form(assigns) do
-    ~H"""
-      <form phx-change="sport-filter">
-          <div class="filters">
-            <select name="sport">
-              <%= Phoenix.HTML.Form.options_for_select(
-                sport_options(),
-                @filter.sport
-              ) %>
-            </select>
-            <select name="status">
-              <%= Phoenix.HTML.Form.options_for_select(
-                status_options(),
-                @filter.status
-              ) %>
-            </select>
-          </div>
-        </form>
-      """
-  end
-
-  def athlete(assigns) do
-    ~H"""
-      <div class="athlete">
-        <div class="emoji">
-          <%= @athlete.emoji %>
-        </div>
-        <div class="name">
-          <%= @athlete.name %>
-        </div>
-        <div class="details">
-          <span class="sport">
-            <%= @athlete.sport %>
-          </span>
-          <span class="status">
-            <%= @athlete.status %>
-          </span>
-        </div>
-      </div>
-    """
-  end
-
   def handle_event("sport-filter", params, socket) do
     %{"sport" => sport, "status" => status} = params
     filter = %{sport: sport, status: status}
