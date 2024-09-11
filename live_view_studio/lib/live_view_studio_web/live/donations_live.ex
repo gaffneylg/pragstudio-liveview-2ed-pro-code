@@ -22,11 +22,14 @@ defmodule LiveViewStudioWeb.DonationsLive do
     }
 
     donations = Donations.list_donations(options)
+    count = Donations.count_donations()
 
     socket =
       socket
       |> assign(donations: donations)
       |> assign(options: options)
+      |> assign(donation_count: count)
+      |> assign(more_pages: more_pages?(options, count))
 
     {:noreply, socket}
   end
@@ -95,5 +98,20 @@ defmodule LiveViewStudioWeb.DonationsLive do
   defp param_to_int(nil, default), do: default
   defp param_to_int(:error, default), do: default
   defp param_to_int({page, _}, _), do: page
-  
+
+  defp more_pages?(options, count) do
+    options.page * options.per_page < count
+  end
+
+  defp pages(options, count) do
+    page_count = ceil(count/ options.per_page)
+
+    for page_number <- (options.page - 2)..(options.page + 2),
+        page_number > 0 do
+      if page_number <= page_count do
+        current_page? = page_number == options.page
+        {page_number, current_page?}
+      end
+    end
+  end
 end
