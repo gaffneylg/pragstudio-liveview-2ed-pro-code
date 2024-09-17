@@ -93,15 +93,26 @@ defmodule LiveViewStudioWeb.BoatsLive do
       """
   end
 
-  def handle_event("type-change", params, socket) do
-    %{"type" => type, "prices" => prices} = params
-    filter = %{type: type, prices: prices}
+  def handle_params(params, _uri, socket) do
+    filter = %{
+      type: params["type"] || "",
+      prices: params["prices"] || [""]
+    }
+
     boats = Boats.list_boats(filter)
     socket =
       socket
       |> assign(filter: filter)
       |> assign(boats: boats)
 
+    {:noreply, socket}
+  end
+
+  def handle_event("type-change", params, socket) do
+    %{"type" => type, "prices" => prices} = params
+    filter = %{type: type, prices: prices}
+
+    socket = push_patch(socket, to: ~p"/boats?#{filter}")
     {:noreply, socket}
   end
 
@@ -113,4 +124,21 @@ defmodule LiveViewStudioWeb.BoatsLive do
       Sailing: "sailing"
     ]
   end
+
+  # Unused param validation
+
+  # defp validate_price(%{"price" => price})
+  #      when price in ~w($ $$ $$$) do
+  #       IO.inspect("price matched")
+  #   [price]
+  # end
+
+  # defp validate_price(_params), do: [""]
+
+  # defp validate_type(%{"type" => type})
+  #      when type in ~w(fishing sailing sporting) do
+  #   type
+  # end
+
+  # defp validate_type(_params), do: ""
 end

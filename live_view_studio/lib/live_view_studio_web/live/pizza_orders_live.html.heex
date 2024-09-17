@@ -1,5 +1,12 @@
 <h1>Pizza Orders</h1>
 <div id="pizza-orders">
+  <form phx-change="per-page">
+    <select name="per-page">
+      <%= Phoenix.HTML.Form.options_for_select([5, 10, 15, 20], 10) %>
+    </select>
+    <label for="per-page">per page</label>
+  </form>
+
   <div class="wrapper">
     <table>
       <thead>
@@ -59,5 +66,32 @@
         </tr>
       </tbody>
     </table>
+    <div class="footer">
+      <div class="pagination">
+        <.link
+          :if={@options.page > 1}
+          patch={
+            ~p"/pizza-orders?#{%{@options | page: @options.page - 1}}"
+          }
+        >
+          Prev
+        </.link>
+        <.link
+          :for={{page, current?} <- pages(@options, @order_count)}
+          class={if current?, do: "active"}
+          patch={~p"/pizza-orders?#{%{@options | page: page}}"}
+        >
+          <%= page %>
+        </.link>
+        <.link
+          :if={@more_pages}
+          patch={
+            ~p"/pizza-orders?#{%{@options | page: @options.page + 1}}"
+          }
+        >
+          Next
+        </.link>
+      </div>
+    </div>
   </div>
 </div>

@@ -5,22 +5,40 @@ defmodule LiveViewStudioWeb.PizzaOrdersLive do
   import Number.Currency
 
   def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [donations: []]}
+    {:ok, socket, temporary_assigns: [pizza_orders: []]}
   end
 
   def handle_params(params, _uri, socket) do
     sort_by = valid_sort_by(params)
     sort_order = valid_sort_order(params)
 
-    options = %{sort_by: sort_by, sort_order: sort_order}
+    page = (params["page"] || "1") |> Integer.parse() |> param_to_int(1)
+    per_page = (params["per_page"] || "10") |> Integer.parse() |> param_to_int(10)
+
+    options = %{
+      sort_by: sort_by,
+      sort_order: sort_order,
+      page: page,
+      per_page: per_page
+    }
 
     pizza_orders = PizzaOrders.list_pizza_orders(options)
+    count = PizzaOrders.count_orders()
 
     socket =
       socket
       |> assign(pizza_orders: pizza_orders)
       |> assign(options: options)
+      |> assign(order_count: count)
+      |> assign(more_pages: more_pages?(options, count))
 
+    {:noreply, socket}
+  end
+
+  def handle_event("per-page", %{"per-page" => per_page}, socket) do
+    params = socket.assigns.options
+
+    socket = push_patch(socket, to: ~p"/pizza-orders?#{%{params | per_page: per_page}}")
 
     {:noreply, socket}
   end
@@ -55,6 +73,25 @@ defmodule LiveViewStudioWeb.PizzaOrdersLive do
   defp arrow(:asc), do: "⬆"
   defp arrow(:desc), do: "⬇"
 
+  defp more_pages?(options, count) do
+    options.page * options.per_page < count
+  end
+
+  defp pages(options, count) do
+    page_count = ceil(count/ options.per_page)
+
+    for page_number <- (options.page - 2)..(options.page + 2),
+        page_number > 0 do
+      if page_number <= page_count do
+        current_page? = page_number == options.page
+        {page_number, current_page?}
+      end
+    end
+  end
+
+  defp param_to_int(nil, default), do: default
+  defp param_to_int(:error, default), do: default
+  defp param_to_int({page, _}, _), do: page
 
   defp valid_sort_by(%{"sort_by" => sort_by})
       when sort_by in ~w(id size style topping_1 topping_2 price) do
