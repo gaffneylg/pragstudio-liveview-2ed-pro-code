@@ -21,10 +21,10 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     ~H"""
     <h1>Volunteer Check-In</h1>
     <div id="volunteer-checkin">
-      <.form for={@form}>
+      <.form for={@form} phx-submit="save">
         <.input field={@form[:name]} placeholder="Name" autocomplete="off" />
         <.input field={@form[:phone]} type="tel" placeholder="Phone Number" autocomplete="off" />
-        <.button>
+        <.button phx-disable-with="Saving...">
           Check in
         </.button>
       </.form>
@@ -47,4 +47,22 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     </div>
     """
   end
+
+
+  def handle_event("save", %{"volunteer" => volunteer_params}, socket) do
+    case Volunteers.create_volunteer(volunteer_params) do
+      {:error, changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+      {:ok, volunteer} ->
+        socket =
+          socket
+          |> update(:volunteers, fn volunteers -> [volunteer | volunteers] end)
+
+        empty_changeset = Volunteers.change_volunteer(%Volunteer{})
+        socket = assign(socket, :form, to_form(empty_changeset))
+
+        {:noreply, socket}
+    end
+  end
+
 end
