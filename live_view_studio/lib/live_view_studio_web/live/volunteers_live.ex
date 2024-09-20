@@ -28,6 +28,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
           Check in
         </.button>
       </.form>
+      <.flash_group flash={@flash} />
       <div
         :for={volunteer <- @volunteers}
         class={"volunteer #{if volunteer.checked_out, do: "out"}"}
@@ -52,6 +53,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
   def handle_event("save", %{"volunteer" => volunteer_params}, socket) do
     case Volunteers.create_volunteer(volunteer_params) do
       {:error, changeset} ->
+        socket = put_flash(socket, :error, "Volunteer could not be checked in.")
         {:noreply, assign(socket, :form, to_form(changeset))}
       {:ok, volunteer} ->
         socket =
@@ -59,9 +61,12 @@ defmodule LiveViewStudioWeb.VolunteersLive do
           |> update(:volunteers, fn volunteers -> [volunteer | volunteers] end)
 
         empty_changeset = Volunteers.change_volunteer(%Volunteer{})
-        socket = assign(socket, :form, to_form(empty_changeset))
+        socket =
+          socket
+          |> assign(:form, to_form(empty_changeset))
 
-        {:noreply, socket}
+        socket = put_flash(socket, :info, "Volunteer checked in successfully.")
+      {:noreply, socket}
     end
   end
 
