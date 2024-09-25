@@ -65,11 +65,11 @@ defmodule LiveViewStudioWeb.ServersLive do
               <.server server={@selected_server} />
             <% end %>
           </div>
-        </div>
-        <div class="links">
-          <.link navigate={~p"/light"}>
-            Adjust Lights
-          </.link>
+          <div class="links">
+            <.link navigate={~p"/light"}>
+              Adjust Lights
+            </.link>
+          </div>
         </div>
       </div>
     </div>
@@ -101,6 +101,10 @@ defmodule LiveViewStudioWeb.ServersLive do
           <blockquote>
             <%= @server.last_commit_message %>
           </blockquote>
+          <br />
+          <button class="cancel" phx-click="delete">
+            Delete
+          </button>
         </div>
       </div>
     """
@@ -135,9 +139,23 @@ defmodule LiveViewStudioWeb.ServersLive do
         socket =
           socket
           |> assign(:form, to_form(empty_changeset))
-        socket = push_patch(socket, to: ~p"/servers/#{server.id}")
+          |> push_patch(to: ~p"/servers/#{server.id}")
+
       {:noreply, socket}
     end
+  end
+
+  def handle_event("delete", _params, socket) do
+    Servers.delete_server(socket.assigns.selected_server)
+    updated_servers = Servers.list_servers()
+    most_recent = hd(updated_servers)
+    socket =
+      socket
+      |> assign(selected_server: most_recent)
+      |> assign(servers: updated_servers)
+      |> push_patch(to: ~p"/servers/#{most_recent.id}")
+
+    {:noreply, socket}
   end
 
   def handle_event("drink", _, socket) do
