@@ -6,13 +6,11 @@ defmodule LiveViewStudioWeb.ServersLive do
 
   def mount(_params, _session, socket) do
     servers = Servers.list_servers()
-    changeset = Servers.change_server(%Server{})
 
     socket =
       socket
       |> assign(servers: servers)
       |> assign(coffees: 0)
-      |> assign(form: to_form(changeset))
 
     {:ok, socket}
   end
@@ -23,6 +21,9 @@ defmodule LiveViewStudioWeb.ServersLive do
     <div id="servers">
       <div class="sidebar">
         <div class="nav">
+          <.link class="add" patch={~p"/servers/new"}>
+            + Add new server
+          </.link>
           <.link
             :for={server <- @servers}
             patch={~p"/servers/#{server}"}
@@ -42,21 +43,27 @@ defmodule LiveViewStudioWeb.ServersLive do
       <div class="main">
         <div class="wrapper">
           <div>
-            <.form for={@form} phx-submit="save">
-              <div class="field">
-                <.input field={@form[:name]} placeholder="Name" autocomplete="off" />
-              </div>
-              <div class="field">
-                <.input field={@form[:framework]} placeholder="Framework" autocomplete="off" />
-              </div>
-              <div class="field">
-                <.input field={@form[:size]} placeholder="Size (Mb)" autocomplete="off" type="number" />
-              </div>
-              <.button phx-disable-with="Saving...">
-                Save
-              </.button>
-            </.form>
-            <.server server={@selected_server} />
+            <%= if @live_action == :new do %>
+              <.form for={@form} phx-submit="save">
+                <div class="field">
+                  <.input field={@form[:name]} placeholder="Name" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <.input field={@form[:framework]} placeholder="Framework" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <.input field={@form[:size]} placeholder="Size (Mb)" autocomplete="off" type="number" />
+                </div>
+                <.button phx-disable-with="Saving...">
+                  Save
+                </.button>
+                <.link class="cancel" patch={~p"/servers/"}>
+                  Cancel
+                </.link>
+              </.form>
+            <% else %>
+              <.server server={@selected_server} />
+            <% end %>
           </div>
         </div>
         <div class="links">
@@ -111,8 +118,14 @@ defmodule LiveViewStudioWeb.ServersLive do
 
   def handle_params(_unsigned_params, _uri, socket) do
     socket =
-      socket
-      |> assign(selected_server: hd(socket.assigns.servers))
+      case socket.assigns.live_action do
+        :new ->
+          socket
+          |> assign(form: to_form(Servers.change_server(%Server{})))
+          |> assign(selected_server: nil)
+        _ ->
+          assign(socket, selected_server: hd(socket.assigns.servers))
+      end
     {:noreply, socket}
   end
 
@@ -130,6 +143,7 @@ defmodule LiveViewStudioWeb.ServersLive do
         socket =
           socket
           |> assign(:form, to_form(empty_changeset))
+        socket = push_patch(socket, to: ~p"/servers/#{server.id}")
       {:noreply, socket}
     end
   end
