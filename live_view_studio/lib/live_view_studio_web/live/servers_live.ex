@@ -116,18 +116,10 @@ defmodule LiveViewStudioWeb.ServersLive do
     {:noreply, socket}
   end
 
-  def handle_params(_unsigned_params, _uri, socket) do
-    socket =
-      case socket.assigns.live_action do
-        :new ->
-          socket
-          |> assign(form: to_form(Servers.change_server(%Server{})))
-          |> assign(selected_server: nil)
-        _ ->
-          assign(socket, selected_server: hd(socket.assigns.servers))
-      end
+  def handle_params(params, _uri, socket) do
+    socket = apply_action(socket, socket.assigns.live_action, params)
     {:noreply, socket}
-  end
+    end
 
   def handle_event("save", %{"server" => server_params}, socket) do
     server_params = Map.put(server_params, "last_commit_message", "Server creation.")
@@ -150,5 +142,15 @@ defmodule LiveViewStudioWeb.ServersLive do
 
   def handle_event("drink", _, socket) do
     {:noreply, update(socket, :coffees, &(&1 + 1))}
+  end
+
+  def apply_action(socket, :new, _params) do
+    socket
+    |> assign(form: to_form(Servers.change_server(%Server{})))
+    |> assign(selected_server: nil)
+  end
+
+  def apply_action(socket, _, _params) do
+    assign(socket, selected_server: hd(socket.assigns.servers))
   end
 end
