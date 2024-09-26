@@ -44,15 +44,15 @@ defmodule LiveViewStudioWeb.ServersLive do
         <div class="wrapper">
           <div>
             <%= if @live_action == :new do %>
-              <.form for={@form} phx-submit="save">
+              <.form for={@form} phx-submit="save" phx-change="validate">
                 <div class="field">
-                  <.input field={@form[:name]} placeholder="Name" autocomplete="off" />
+                  <.input field={@form[:name]} placeholder="Name" autocomplete="off" phx-debounce="1500"/>
                 </div>
                 <div class="field">
-                  <.input field={@form[:framework]} placeholder="Framework" autocomplete="off" />
+                  <.input field={@form[:framework]} placeholder="Framework" autocomplete="off" phx-debounce="1500"/>
                 </div>
                 <div class="field">
-                  <.input field={@form[:size]} placeholder="Size (Mb)" autocomplete="off" type="number" />
+                  <.input field={@form[:size]} placeholder="Size (Mb)" autocomplete="off" type="number" phx-debounce="1500"/>
                 </div>
                 <.button phx-disable-with="Saving...">
                   Save
@@ -154,6 +154,20 @@ defmodule LiveViewStudioWeb.ServersLive do
       |> assign(selected_server: most_recent)
       |> assign(servers: updated_servers)
       |> push_patch(to: ~p"/servers/#{most_recent.id}")
+
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"server" => server_params}, socket) do
+
+    changeset =
+      %Server{}
+      |> Servers.change_server(server_params)
+      |> Map.put(:action, :validate)
+
+    socket =
+      socket
+      |> assign(form: to_form(changeset))
 
     {:noreply, socket}
   end
