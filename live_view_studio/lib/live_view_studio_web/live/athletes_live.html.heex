@@ -1,0 +1,37 @@
+<h1>Athletes</h1>
+<div id="athletes">
+  <form phx-change="sport-filter">
+    <div class="filters">
+      <select name="sport">
+        <%= Phoenix.HTML.Form.options_for_select(
+          sport_options(),
+          @filter.sport
+        ) %>
+      </select>
+      <select name="status">
+        <%= Phoenix.HTML.Form.options_for_select(
+          status_options(),
+          @filter.status
+        ) %>
+      </select>
+    </div>
+  </form>
+  <div class="athletes">
+    <div class="athlete" :for={athlete <- @athletes}>
+      <div class="emoji">
+        <%= athlete.emoji %>
+      </div>
+      <div class="name">
+        <%= athlete.name %>
+      </div>
+      <div class="details">
+        <span class="sport">
+          <%= athlete.sport %>
+        </span>
+        <span class="status">
+          <%= athlete.status %>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

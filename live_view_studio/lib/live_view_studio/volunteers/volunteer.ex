@@ -18,6 +18,6 @@ defmodule LiveViewStudio.Volunteers.Volunteer do
     |> cast(attrs, [:name, :phone, :checked_out])
     |> validate_required([:name, :phone])
     |> validate_length(:name, min: 2, max: 100)
-    |> validate_format(:phone, @phone, message: "must be a valid phone number")
+    |> validate_format(:phone, @phone, message: "Must be a valid phone number")
   end
 end

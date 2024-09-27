@@ -1,5 +1,6 @@
 defmodule LiveViewStudio.Vehicles do
   def search(make_or_model) do
+    Process.sleep(1500)
     list_vehicles()
     |> Enum.filter(
       &String.contains?(
@@ -118,6 +119,31 @@ defmodule LiveViewStudio.Vehicles do
       %{
         make_model: "Honda Pilot",
         color: "White",
+        status: :used
+      },
+      %{
+        make_model: "Opel Astra",
+        color: "Silver",
+        status: :used
+      },
+      %{
+        make_model: "Volkswagen Passat CC",
+        color: "Petrol Blue",
+        status: :used
+      },
+      %{
+        make_model: "Volkswagen Tiguan",
+        color: "Silver",
+        status: :new
+      },
+      %{
+        make_model: "Opel Mokka",
+        color: "White",
+        status: :used
+      },
+      %{
+        make_model: "Seat Ateca",
+        color: "Black",
         status: :used
       }
     ]
