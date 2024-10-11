@@ -81,9 +81,9 @@ defmodule LiveViewStudioWeb.ServersLive do
       <div class="server">
         <div class="header">
           <h2><%= @server.name %></h2>
-          <span class={@server.status}>
+          <button class={@server.status} phx-click="toggle-status" phx-value-id={@server.id}>
             <%= @server.status %>
-          </span>
+          </button>
         </div>
         <div class="body">
           <div class="row">
@@ -154,6 +154,21 @@ defmodule LiveViewStudioWeb.ServersLive do
       |> assign(selected_server: most_recent)
       |> assign(servers: updated_servers)
       |> push_patch(to: ~p"/servers/#{most_recent.id}")
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle-status", %{"id" => id} = _params, socket) do
+    server = Servers.get_server!(id)
+    {:ok, switch} = Servers.toggle_status(server)
+    updated = Servers.change_server(switch)
+    updated_servers = Servers.list_servers()
+
+    socket =
+      socket
+      |> assign(selected_server: updated)
+      |> assign(servers: updated_servers)
+      |> push_patch(to: ~p"/servers/#{switch.id}")
 
     {:noreply, socket}
   end
