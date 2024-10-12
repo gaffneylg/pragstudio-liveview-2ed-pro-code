@@ -3,16 +3,14 @@ defmodule LiveViewStudioWeb.VolunteersLive do
 
   alias LiveViewStudio.Volunteers
   alias LiveViewStudio.Volunteers.Volunteer
+  alias LiveViewStudioWeb.VolunteerFormComponent
 
   def mount(_params, _session, socket) do
     volunteers = Volunteers.list_volunteers()
 
-    changeset = Volunteers.change_volunteer(%Volunteer{})
-
     socket =
       socket
       |> stream(:volunteers, volunteers)
-      |> assign(:form, to_form(changeset))
 
     {:ok, socket}
   end
@@ -21,72 +19,55 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     ~H"""
     <h1>Volunteer Check-In</h1>
     <div id="volunteer-checkin">
-      <.form for={@form} phx-submit="save" phx-change="validate" >
-        <.input field={@form[:name]} placeholder="Name" autocomplete="off" phx-debounce="1500" />
-        <.input field={@form[:phone]} type="tel" placeholder="Phone Number" autocomplete="off" phx-debounce="blur" />
-        <.button phx-disable-with="Saving...">
-          Check in
-        </.button>
-      </.form>
+      <.live_component module={VolunteerFormComponent} id={:new} />
+
       <.flash_group flash={@flash} />
       <div id="volunteers" phx-update="stream">
-        <div
+        <.volunteer
           :for={{vol_id, volunteer} <- @streams.volunteers}
-          class={"volunteer #{if volunteer.checked_out, do: "out"}"}
+          volunteer={volunteer}
           id={vol_id}
-        >
-          <div class="name">
-            <%= volunteer.name %>
-          </div>
-          <div class="phone">
-            <%= volunteer.phone %>
-          </div>
-          <div class="status">
-            <button phx-click="checking" phx-value-id={volunteer.id}>
-              <%= if volunteer.checked_out, do: "Check In", else: "Check Out" %>
-            </button>
-          </div>
-          <.link class="delete" phx-click="delete" phx-value-id={volunteer.id} data-confirm="Are you sure?">
-            <.icon name="hero-trash-solid" />
-          </.link>
-        </div>
+        />
       </div>
     </div>
     """
   end
 
-
-  def handle_event("save", %{"volunteer" => volunteer_params}, socket) do
-    case Volunteers.create_volunteer(volunteer_params) do
-      {:error, changeset} ->
-        socket = put_flash(socket, :error, "Volunteer could not be checked in.")
-        {:noreply, assign(socket, :form, to_form(changeset))}
-      {:ok, volunteer} ->
-        socket =
-          socket
-          |> stream_insert(:volunteers, volunteer, at: 0)
-
-        empty_changeset = Volunteers.change_volunteer(%Volunteer{})
-        socket =
-          socket
-          |> assign(:form, to_form(empty_changeset))
-
-        socket = put_flash(socket, :info, "Volunteer checked in successfully.")
-      {:noreply, socket}
-    end
+  def volunteer(assigns) do
+    ~H"""
+      <div
+        class={"volunteer #{if @volunteer.checked_out, do: "out"}"}
+        id={@id}
+      >
+        <div class="name">
+          <%= @volunteer.name %>
+        </div>
+        <div class="phone">
+          <%= @volunteer.phone %>
+        </div>
+        <div class="status">
+          <button phx-click="checking" phx-value-id={@volunteer.id}>
+            <%= if @volunteer.checked_out, do: "Check In", else: "Check Out" %>
+          </button>
+        </div>
+        <.link class="delete" phx-click="delete" phx-value-id={@volunteer.id} data-confirm="Are you sure?">
+          <.icon name="hero-trash-solid" />
+        </.link>
+      </div>
+    """
   end
 
-  def handle_event("validate", %{"volunteer" => volunteer_params}, socket) do
-
-    changeset =
-      %Volunteer{}
-      |> Volunteers.change_volunteer(volunteer_params)
-      |> Map.put(:action, :validate)
-
+  def handle_info({:vol_created, volunteer}, socket) do
     socket =
       socket
-      |> assign(form: to_form(changeset))
+      |> stream_insert(:volunteers, volunteer, at: 0)
 
+    empty_changeset = Volunteers.change_volunteer(%Volunteer{})
+    socket =
+      socket
+      |> assign(:form, to_form(empty_changeset))
+
+    socket = put_flash(socket, :info, "Volunteer checked in successfully.")
     {:noreply, socket}
   end
 
