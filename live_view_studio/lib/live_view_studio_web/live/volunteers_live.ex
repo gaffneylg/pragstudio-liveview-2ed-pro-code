@@ -11,6 +11,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     socket =
       socket
       |> stream(:volunteers, volunteers)
+      |> assign(:count, length(volunteers))
 
     {:ok, socket}
   end
@@ -19,7 +20,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     ~H"""
     <h1>Volunteer Check-In</h1>
     <div id="volunteer-checkin">
-      <.live_component module={VolunteerFormComponent} id={:new} />
+      <.live_component module={VolunteerFormComponent} id={:new} count={@count}/>
 
       <.flash_group flash={@flash} />
       <div id="volunteers" phx-update="stream">
@@ -68,6 +69,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
       |> assign(:form, to_form(empty_changeset))
 
     socket = put_flash(socket, :info, "Volunteer checked in successfully.")
+    socket = update(socket, :count, &(&1 + 1))
     {:noreply, socket}
   end
 
@@ -89,6 +91,7 @@ defmodule LiveViewStudioWeb.VolunteersLive do
     socket =
       socket
       |> stream_delete(:volunteers, deleted)
+      |> update(:count, &(&1 - 1))
 
     {:noreply, socket}
   end

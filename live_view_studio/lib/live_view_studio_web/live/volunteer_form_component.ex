@@ -17,9 +17,21 @@ defmodule LiveViewStudioWeb.VolunteerFormComponent do
     {:ok, socket}
   end
 
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:count, assigns.count + 1)
+
+    {:ok, socket}
+  end
+
   def render(assigns) do
     ~H"""
       <div>
+      <div class="count">
+        Go for it, you'll be volunteer #<%= @count %>
+      </div>
         <.form for={@form} phx-submit="save" phx-change="validate" phx-target={@myself}>
           <.input field={@form[:name]} placeholder="Name" autocomplete="off" phx-debounce="1500" />
           <.input field={@form[:phone]} type="tel" placeholder="Phone Number" autocomplete="off" phx-debounce="blur" />
@@ -63,25 +75,4 @@ defmodule LiveViewStudioWeb.VolunteerFormComponent do
     {:noreply, socket}
   end
 
-  # def handle_event("checking", %{"id" => id} = _params, socket) do
-  #   volunteer = Volunteers.get_volunteer!(id)
-  #   {:ok, updated} = Volunteers.toggle_status_volunteer(volunteer)
-
-  #   socket =
-  #     socket
-  #     |> stream_insert(:volunteers, updated)
-
-  #   {:noreply, socket}
-  # end
-
-  # def handle_event("delete", %{"id" => id} = _params, socket) do
-  #   volunteer = Volunteers.get_volunteer!(id)
-  #   {:ok, deleted} = Volunteers.delete_volunteer(volunteer)
-
-  #   socket =
-  #     socket
-  #     |> stream_delete(:volunteers, deleted)
-
-  #   {:noreply, socket}
-  # end
 end
